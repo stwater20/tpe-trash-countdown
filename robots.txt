@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ntpc-trash-countdown.sectools.tw/sitemap.xml
