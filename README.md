@@ -42,3 +42,17 @@ scripts/fetch-data.mjs  ← 抓資料腳本（Node 20+，無外部套件）
 ## License
 
 MIT（程式碼）。資料依臺北市資料大平臺授權條款。
+
+## 品質驗證
+
+每次 push / pull request 會執行瀏覽器回歸測試。使用 Node.js 22：
+
+```sh
+npm install --no-save playwright@1.58.2
+npx playwright install chromium
+node tests/smoke.cjs
+```
+
+測試以手機尺寸與非台灣時區，驗證查詢、損壞收藏資料復原、收藏、倒數更新時鍵盤焦點、日曆下載、清空行政區、網路錯誤重試及搜尋。預設攔截請求讀取本機檔案，不需啟動伺服器；也可設定 `TEST_URL` 測試部署站。
+
+倒數為固定 Asia/Taipei 的表定排程，並非車輛即時到站預測。收藏與偏好僅存於使用者瀏覽器，儲存不可用時仍可查詢。資料抓取有逾時與完整性檢查，來源異常時保留既有資料。

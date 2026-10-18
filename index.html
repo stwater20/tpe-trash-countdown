@@ -74,6 +74,11 @@
     padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: .92rem;
     display: flex; justify-content: space-between; gap: 8px; align-items: baseline;
   }
+  button.stop-item { width: 100%; border: 0; background: transparent; color: var(--text); text-align: left; font-family: inherit; }
+  :focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+  button, select { min-height: 44px; }
+  @media (max-width: 480px) { h1 { font-size: 1.3rem; padding: 0 30px; } .wtable { grid-template-columns: 66px repeat(7, 1fr); gap: 2px; } }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
   .stop-item:hover { background: var(--card2); }
   .stop-item.sel { background: rgba(90,216,166,.12); outline: 1px solid var(--green); }
   .stop-item .t { color: var(--yellow); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -147,7 +152,7 @@
 </head>
 <body>
 <button class="theme-toggle" id="themeBtn" title="切換深淺色">🌙</button>
-<div class="wrap">
+<main class="wrap">
   <header>
     <h1>🚛 台北市垃圾車時間查詢</h1>
     <p>垃圾車幾點到？選你家附近的清運點，即時倒數下一班，一鍵加進手機日曆提醒。</p>
@@ -168,9 +173,11 @@
     <select id="village" disabled><option>先選行政區</option></select>
     <label for="q">搜尋清運點（路名、地標）</label>
     <input type="search" id="q" placeholder="例如：中山北路、公園、市場⋯" disabled>
+    <p id="status" role="status" style="margin-top:12px;color:var(--muted)">請選行政區，開始查詢。</p>
     <div class="stops" id="stops"></div>
   </div>
 
+  <noscript><p class="notice">此查詢需要 JavaScript，請啟用後重新整理。</p></noscript>
   <div id="detail"></div>
 
   <div class="share-site">
@@ -191,17 +198,31 @@
       台北市每週三、週日停收；資源回收週一、五收平面類，週二、四、六收立體類。
     </p>
     資料來源：<a href="https://data.taipei/dataset/detail?id=6bb3304b-4f46-4bb0-8cd1-60c66dcd1cae" target="_blank" rel="noopener">臺北市資料大平臺「臺北市垃圾車點位路線資訊」</a>（每月自動更新）<br>
-    <span id="updated"></span>表定時間僅供參考，實際以現場為準。國定假日（如春節）通常停收，請留意環保局公告。
+    <span id="updated"></span>表定時間僅供參考，實際以現場為準。節慶與特殊停收安排請以環保局公告為準。定位僅用於本機計算距離；收藏儲存在此瀏覽器。
   </footer>
-</div>
+</main>
 
 <script>
+const storage = {
+  getItem(key) { try { return localStorage.getItem(key); } catch { return null; } },
+  setItem(key, value) { try { localStorage.setItem(key, value); } catch { /* Private browsing may disable persistence. */ } }
+};
+function readJSON(key, fallback) {
+  try { return JSON.parse(storage.getItem(key)) ?? fallback; } catch { return fallback; }
+}
+const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function fetchJSON(url) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+}
+let loadVersion = 0;
 const WD = ["日","一","二","三","四","五","六"];
 const ICS_DAY = ["SU","MO","TU","WE","TH","FR","SA"];
 let cityData = null, selStop = null, timer = null;
 
 const $ = id => document.getElementById(id);
-const tpeNow = () => new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Taipei" }));
+const tpeNow = () => new Date(Date.now() + 8 * 3600000);
 
 // ===== 深淺色模式：跟隨系統，可手動切換 =====
 const sysTheme = () => matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
@@ -209,14 +230,14 @@ function applyTheme(t) {
   document.documentElement.dataset.theme = t;
   $("themeBtn").textContent = t === "dark" ? "🌙" : "☀️";
 }
-applyTheme(localStorage.getItem("theme") || sysTheme());
+applyTheme(storage.getItem("theme") || sysTheme());
 $("themeBtn").onclick = () => {
   const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-  localStorage.setItem("theme", next);
+  storage.setItem("theme", next);
   applyTheme(next);
 };
 matchMedia("(prefers-color-scheme: light)").addEventListener("change", e => {
-  if (!localStorage.getItem("theme")) applyTheme(e.matches ? "light" : "dark");
+  if (!storage.getItem("theme")) applyTheme(e.matches ? "light" : "dark");
 });
 
 // ===== 分享網站 =====
@@ -242,14 +263,14 @@ function parseHash() {
 }
 
 async function init() {
-  const idx = await (await fetch("data/index.json")).json();
+  const idx = await fetchJSON("data/index.json");
   $("updated").textContent = `資料更新日：${idx.updated}・共 ${idx.total.toLocaleString()} 個清運點｜`;
   const citySel = $("city");
   citySel.innerHTML = '<option value="">請選擇</option>' +
     idx.cities.map(c => `<option value="${c.name}">${c.name}（${c.n.toLocaleString()} 點）</option>`).join("");
   renderFavs();
   // 網址 hash（可分享連結）優先，其次上次選擇
-  const saved = parseHash() || JSON.parse(localStorage.getItem("tpe-trash") || "{}");
+  const saved = parseHash() || readJSON("tpe-trash", {});
   if (saved.city && [...citySel.options].some(o => o.value === saved.city)) {
     citySel.value = saved.city;
     await loadCity(saved.city, saved);
@@ -260,26 +281,29 @@ async function init() {
 
 // ===== 定位找最近清運點 =====
 function geoLocate() {
-  if (!$("city").value) { alert("請先選行政區，再用定位找該區最近的清運點"); return; }
+  if (!cityData || !$("city").value) { alert("請先選行政區，再用定位找該區最近的清運點"); return; }
   if (!navigator.geolocation) { alert("你的瀏覽器不支援定位"); return; }
   $("geoBtn").textContent = "📍 定位中⋯";
+  const version = loadVersion;
   navigator.geolocation.getCurrentPosition(pos => {
     $("geoBtn").textContent = "📍 找我附近的清運點";
+    if (version !== loadVersion || !cityData) return;
     const { latitude: la, longitude: lo } = pos.coords;
     const dist = s => {
-      const dx = (s[3] - lo) * 101000 * Math.cos(la * Math.PI / 180);
+      const dx = (s[3] - lo) * 111320 * Math.cos(la * Math.PI / 180);
       const dy = (s[4] - la) * 110600;
       return Math.sqrt(dx * dx + dy * dy);
     };
-    const nearest = [...cityData.stops].map(s => [dist(s), s]).sort((a, b) => a[0] - b[0]).slice(0, 20);
+    const nearest = [...cityData.stops].filter(s => s[3] > 0 && s[4] > 0).map(s => [dist(s), s]).sort((a, b) => a[0] - b[0]).slice(0, 20);
     $("village").value = "";
     $("q").value = "";
+    $("status").textContent = `顯示所選行政區最近 ${nearest.length} 個清運點（直線距離）`;
     const shown = nearest.map(n => n[1]);
     $("stops").innerHTML = nearest.map(([d, s], i) =>
-      `<div class="stop-item" data-i="${i}">
-        <span>${s[0]}<br><span class="v">${s[1]}・${s[8]}</span></span>
+      `<button type="button" class="stop-item" data-i="${i}">
+        <span>${esc(s[0])}<br><span class="v">${esc(s[1])}・${esc(s[8])}</span></span>
         <span><span class="dist">${d < 1000 ? Math.round(d) + " m" : (d/1000).toFixed(1) + " km"}</span> <span class="t">${s[2]}</span></span>
-      </div>`).join("");
+      </button>`).join("");
     [...$("stops").children].forEach(el => {
       if (el.dataset.i !== undefined) el.onclick = () => selectStop(shown[+el.dataset.i], el);
     });
@@ -290,21 +314,27 @@ function geoLocate() {
 }
 
 // ===== 常用清運點（⭐ 收藏多個）=====
-const getFavs = () => JSON.parse(localStorage.getItem("tpe-trash-favs") || "[]");
+const getFavs = () => {
+  const value = readJSON("tpe-trash-favs", []);
+  return Array.isArray(value) ? value.filter(f => f && [f.city, f.village, f.name, f.stopKey].every(v => typeof v === "string")) : [];
+};
 function renderFavs() {
   const favs = getFavs();
   $("favPanel").style.display = favs.length ? "" : "none";
   $("favList").innerHTML = favs.map((f, i) =>
-    `<div class="fav-item" data-i="${i}">
-      <span>⭐ ${f.name}<span class="v">（${f.city}${f.village}）</span></span>
-      <span class="x" data-x="${i}" title="移除">✕</span>
+    `<div class="fav-item" role="button" tabindex="0" data-i="${i}">
+      <span>⭐ ${esc(f.name)}<span class="v">（${esc(f.city)}${esc(f.village)}）</span></span>
+      <button class="x" data-x="${i}" title="移除" aria-label="移除此常用清運點">✕</button>
     </div>`).join("");
   [...$("favList").querySelectorAll(".fav-item")].forEach(el => {
+    el.onkeydown = e => {
+      if (e.target === el && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); el.click(); }
+    };
     el.onclick = async e => {
       const i = +el.dataset.i;
       if (e.target.dataset.x !== undefined) {
         const favs = getFavs(); favs.splice(i, 1);
-        localStorage.setItem("tpe-trash-favs", JSON.stringify(favs));
+        storage.setItem("tpe-trash-favs", JSON.stringify(favs));
         renderFavs(); return;
       }
       const f = getFavs()[i];
@@ -319,14 +349,36 @@ function toggleFav() {
   const i = favs.findIndex(f => f.stopKey === key && f.city === $("city").value);
   if (i >= 0) favs.splice(i, 1);
   else favs.push({ city: $("city").value, village: selStop[1], name: selStop[0], stopKey: key });
-  localStorage.setItem("tpe-trash-favs", JSON.stringify(favs));
+  storage.setItem("tpe-trash-favs", JSON.stringify(favs));
   renderFavs();
   selectStop(selStop);
 }
 
 async function loadCity(city, saved) {
+  const version = ++loadVersion;
+  cityData = null; selStop = null;
+  clearInterval(timer);
+  $("detail").replaceChildren(); $("stops").replaceChildren();
+  $("village").disabled = true; $("q").disabled = true; $("q").value = "";
+  $("geoBtn").disabled = true;
+  $("village").innerHTML = '<option value="">先選行政區</option>';
+  $("status").textContent = city ? "正在載入清運點…" : "請選行政區，開始查詢。";
   if (!city) return;
-  cityData = await (await fetch(`data/${encodeURIComponent(city)}.json`)).json();
+  try {
+    const data = await fetchJSON(`data/${encodeURIComponent(city)}.json`);
+    if (version !== loadVersion) return;
+    if (!Array.isArray(data.stops)) throw new Error("資料格式錯誤");
+    cityData = data;
+  } catch {
+    if (version !== loadVersion) return;
+    $("status").textContent = "資料載入失敗，請檢查網路後重試。";
+    const retry = document.createElement("button");
+    retry.className = "btn map"; retry.textContent = "重新載入";
+    retry.onclick = () => loadCity(city, saved);
+    $("stops").replaceChildren(retry);
+    return;
+  }
+  $("geoBtn").disabled = false;
   const villages = [...new Set(cityData.stops.map(s => s[1]))];
   const vSel = $("village");
   vSel.disabled = false;
@@ -345,16 +397,18 @@ async function loadCity(city, saved) {
 const stopKey = s => s[0] + "|" + s[2] + "|" + s[8];
 
 function renderStops() {
+  if (!cityData) return;
   const v = $("village").value, q = $("q").value.trim();
   let list = cityData.stops;
   if (v) list = list.filter(s => s[1] === v);
   if (q) list = list.filter(s => s[0].includes(q));
+  $("status").textContent = `找到 ${list.length} 個清運點`;
   const shown = list.slice(0, 200);
   $("stops").innerHTML = shown.map((s, i) =>
-    `<div class="stop-item" data-i="${i}">
-      <span>${s[0]}<br><span class="v">${s[1]}・${s[8]}</span></span>
+    `<button type="button" class="stop-item" data-i="${i}">
+      <span>${esc(s[0])}<br><span class="v">${esc(s[1])}・${esc(s[8])}</span></span>
       <span class="t">${s[2]}</span>
-    </div>`).join("") +
+    </button>`).join("") +
     (list.length > 200 ? `<div class="hint">還有 ${list.length - 200} 筆，請用搜尋縮小範圍</div>` : "") +
     (list.length === 0 ? `<div class="hint">找不到清運點 😢 換個關鍵字試試</div>` : "");
   [...$("stops").children].forEach(el => {
@@ -368,23 +422,24 @@ function nextOccur(s, flagIdx) {
   const [hh, mm] = s[2].split(":").map(Number);
   const now = tpeNow();
   for (let d = 0; d < 14; d++) {
-    const cand = new Date(now); cand.setDate(now.getDate() + d); cand.setHours(hh, mm, 0, 0);
-    if (flags[cand.getDay()] === "1" && cand > now) return cand;
+    const cand = new Date(now); cand.setUTCDate(now.getUTCDate() + d); cand.setUTCHours(hh, mm, 0, 0);
+    if (flags[cand.getUTCDay()] === "1" && cand > now) return cand;
   }
   return null;
 }
 
 function selectStop(s, el) {
+  $("detail").replaceChildren();
   selStop = s;
   document.querySelectorAll(".stop-item.sel").forEach(e => e.classList.remove("sel"));
   if (el) el.classList.add("sel");
-  localStorage.setItem("tpe-trash", JSON.stringify({ city: $("city").value, village: $("village").value, stopKey: stopKey(s) }));
+  storage.setItem("tpe-trash", JSON.stringify({ city: $("city").value, village: $("village").value, stopKey: stopKey(s) }));
   // 可分享網址
   history.replaceState(null, "", "#" + encodeURIComponent(`${$("city").value}~${s[1]}~${stopKey(s)}`));
   if (timer) clearInterval(timer);
   const render = () => {
     const nG = nextOccur(s, 5), nR = nextOccur(s, 6), nF = nextOccur(s, 7);
-    const fmtD = t => !t ? "－" : `${t.getMonth()+1}/${t.getDate()}(${WD[t.getDay()]}) ${s[2]}`;
+    const fmtD = t => !t ? "－" : `${t.getUTCMonth()+1}/${t.getUTCDate()}(${WD[t.getUTCDay()]}) ${s[2]}`;
     const cd = t => {
       if (!t) return "此清運點目前無收運資訊";
       const diff = t - tpeNow();
@@ -393,22 +448,28 @@ function selectStop(s, el) {
       if (diff < 86400000) return `${h} 小時 ${m} 分`;
       return `${Math.floor(diff / 86400000)} 天 ${h % 24} 小時`;
     };
+    if ($("detail").querySelector(".result")) {
+      $("detail").querySelector(".big").textContent = cd(nG);
+      $("detail").querySelector(".sub").textContent = `🗑️ 垃圾 ${fmtD(nG)}｜♻️ 回收 ${fmtD(nR)}｜🥬 廚餘 ${fmtD(nF)}`;
+      $("detail").querySelectorAll(".wt-head").forEach((head, i) => head.classList.toggle("today", i === tpeNow().getUTCDay()));
+      return;
+    }
     $("detail").innerHTML = `
     <div class="result">
-      <div class="sname">📍 ${s[0]}</div>
-      <div class="route">${$("city").value}${s[1]}・${s[8]}・表定 ${s[2]}</div>
-      <div class="next-label">下 一 班 垃 圾 車</div>
+      <div class="sname">📍 ${esc(s[0])}</div>
+      <div class="route">${$("city").value}${esc(s[1])}・${esc(s[8])}・表定 ${s[2]}</div>
+      <div class="next-label">距 下 次 表 定 收 運</div>
       <div class="big">${cd(nG)}</div>
       <div class="sub">🗑️ 垃圾 ${fmtD(nG)}｜♻️ 回收 ${fmtD(nR)}｜🥬 廚餘 ${fmtD(nF)}</div>
       <div class="wtable">
         <div class="wt-cell wt-label"></div>
-        ${WD.map((w, i) => `<div class="wt-cell wt-head ${i === tpeNow().getDay() ? "today" : ""}">${w}</div>`).join("")}
+        ${WD.map((w, i) => `<div class="wt-cell wt-head ${i === tpeNow().getUTCDay() ? "today" : ""}">${w}</div>`).join("")}
         ${[["🗑️ 垃圾", 5, "g"], ["♻️ 回收", 6, "r"], ["🥬 廚餘", 7, "f"]].map(([lb, fi, cl]) =>
           `<div class="wt-cell wt-label">${lb}</div>` +
           WD.map((w, i) => `<div class="wt-cell ${s[fi][i] === "1" ? "wt-on " + cl : "wt-off"}">${s[fi][i] === "1" ? "✓" : "·"}</div>`).join("")
         ).join("")}
       </div>
-      <div class="legend">週三、週日停收。♻️ 回收：週一、五收平面類；週二、四、六收立體類。</div>
+      <div class="legend">非車輛即時位置，倒數依表定時間計算。週三、週日停收。♻️ 回收：週一、五收平面類；週二、四、六收立體類。</div>
       <div class="btns">
         <button class="btn cal" onclick="downloadICS()">📅 加入日曆（每週提醒）</button>
         <button class="btn fav" onclick="toggleFav()">${getFavs().some(f => f.stopKey === stopKey(s) && f.city === $("city").value) ? "💔 移除常用" : "⭐ 加入常用"}</button>
@@ -430,13 +491,25 @@ async function shareLink() {
   const url = location.href;
   const text = `🚛 ${selStop[0]} 的垃圾車時間表`;
   if (navigator.share) { try { await navigator.share({ title: text, url }); } catch {} }
-  else { await navigator.clipboard.writeText(url); alert("連結已複製！"); }
+  else { try { await navigator.clipboard.writeText(url); alert("連結已複製！"); } catch { prompt("請複製以下連結", url); } }
 }
 
 // ===== 產生 .ics（每週重複 + 提前 10 分鐘提醒）=====
 function icsDate(t) {
   const p = n => String(n).padStart(2, "0");
-  return `${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}T${p(t.getHours())}${p(t.getMinutes())}00`;
+  return `${t.getUTCFullYear()}${p(t.getUTCMonth()+1)}${p(t.getUTCDate())}T${p(t.getUTCHours())}${p(t.getUTCMinutes())}00`;
+}
+function icsText(value) {
+  return String(value).replace(/\\/g, "\\\\").replace(/\r?\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+}
+function foldICS(line) {
+  let result = "", width = 0;
+  for (const char of line) {
+    const bytes = new TextEncoder().encode(char).length;
+    if (width + bytes > 75) { result += "\r\n "; width = 1; }
+    result += char; width += bytes;
+  }
+  return result;
 }
 function makeEvent(s, flagIdx, label, emoji) {
   const start = nextOccur(s, flagIdx);
@@ -445,18 +518,18 @@ function makeEvent(s, flagIdx, label, emoji) {
   const end = new Date(start.getTime() + 10 * 60000);
   return [
     "BEGIN:VEVENT",
-    `UID:${stopKey(s).replace(/[^\w]/g, "")}-${flagIdx}@tpe-trash`,
-    `DTSTAMP:${icsDate(new Date())}Z`,
+    `UID:${encodeURIComponent($("city").value + "|" + stopKey(s))}-${flagIdx}@tpe-trash`,
+    `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")}`,
     `DTSTART;TZID=Asia/Taipei:${icsDate(start)}`,
     `DTEND;TZID=Asia/Taipei:${icsDate(end)}`,
     `RRULE:FREQ=WEEKLY;BYDAY=${days}`,
-    `SUMMARY:${emoji} ${label}車來了－${s[0]}`,
-    `LOCATION:${$("city").value}${s[1]} ${s[0]}`,
-    `DESCRIPTION:表定時間 ${s[2]}（${s[8]}）\\n資料來源：臺北市資料大平臺`,
+    `SUMMARY:${emoji} ${label}車來了－${icsText(s[0])}`,
+    `LOCATION:${$("city").value}${icsText(s[1])} ${icsText(s[0])}`,
+    `DESCRIPTION:表定時間 ${s[2]}（${icsText(s[8])}）\\n資料來源：臺北市資料大平臺`,
     "BEGIN:VALARM",
     "TRIGGER:-PT10M",
     "ACTION:DISPLAY",
-    `DESCRIPTION:${emoji} ${label}車 10 分鐘後到 ${s[0]}`,
+    `DESCRIPTION:${emoji} ${label}車 10 分鐘後到 ${icsText(s[0])}`,
     "END:VALARM",
     "END:VEVENT"
   ].join("\r\n");
@@ -474,16 +547,16 @@ function downloadICS() {
     ...events,
     "END:VCALENDAR"
   ].join("\r\n");
-  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const blob = new Blob([ics.split("\r\n").map(foldICS).join("\r\n") + "\r\n"], { type: "text/calendar;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `垃圾車提醒-${s[0]}.ics`;
   a.click();
-  URL.revokeObjectURL(a.href);
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-init().catch(e => {
-  $("stops").innerHTML = `<div class="hint">資料載入失敗 😢（${e.message}）<br>如果是第一次部署，請先執行 GitHub Actions 抓資料</div>`;
+init().catch(() => {
+  $("stops").innerHTML = '<div class="hint">資料載入失敗，請檢查網路。<br><button class="btn map" onclick="location.reload()">重新載入</button></div>';
 });
 </script>
 </body>

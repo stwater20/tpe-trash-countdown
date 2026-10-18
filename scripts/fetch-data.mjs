@@ -1,6 +1,6 @@
 // 抓取臺北市垃圾車點位路線資訊（data.taipei），輸出各行政區 JSON
 // 資料集：https://data.taipei/dataset/detail?id=6bb3304b-4f46-4bb0-8cd1-60c66dcd1cae
-import { mkdir, writeFile, rm } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 
 const RID = "a6e90031-7ec4-4089-afb5-361a4efe7202";
 const BASE = `https://data.taipei/api/v1/dataset/${RID}?scope=resourceAquire`;
@@ -9,9 +9,10 @@ const LIMIT = 1000;
 async function fetchAll() {
   let offset = 0, all = [], count = Infinity;
   while (offset < count) {
-    const res = await fetch(`${BASE}&limit=${LIMIT}&offset=${offset}`);
+    const res = await fetch(`${BASE}&limit=${LIMIT}&offset=${offset}`, { signal: AbortSignal.timeout(30000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const j = await res.json();
+    if (!j.result || !Number.isInteger(j.result.count) || !Array.isArray(j.result.results) || !j.result.results.length) throw new Error("Invalid or empty API response; keeping existing data");
     count = j.result.count;
     all.push(...j.result.results);
     offset += LIMIT;
@@ -46,7 +47,11 @@ for (const r of rows) {
   ]);
 }
 
-await rm("data", { recursive: true, force: true });
+// Refuse incomplete upstream snapshots before modifying any existing data.
+if (Object.keys(byCity).length !== 12 || rows.length < 3000) throw new Error("Incomplete dataset; keeping existing data");
+for (const [city, stops] of Object.entries(byCity)) {
+  if (!/^[\u4e00-\u9fff]+區$/.test(city) || !stops.length || stops.some(s => !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(s[2]))) throw new Error("Invalid district or arrival time");
+}
 await mkdir("data", { recursive: true });
 
 let total = 0;
