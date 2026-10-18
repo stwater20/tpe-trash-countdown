@@ -32,153 +32,73 @@
 }
 </script>
 <style>
-  :root, :root[data-theme="dark"] {
-    --bg: #10151f; --card: #1a2230; --card2: #202b3d;
-    --text: #eaf0f8; --muted: #8fa1bb; --line: #2c3a52;
-    --green: #5ad8a6; --yellow: #ffd166; --pink: #ff7d94; --blue: #6cb2ff;
-    --glow: #1e2c45; --btn-cal-text: #06281a; --geo-text: #04182e;
-  }
-  :root[data-theme="light"] {
-    --bg: #f3f5fa; --card: #ffffff; --card2: #eef1f7;
-    --text: #1c2534; --muted: #5c6b84; --line: #d9e0ec;
-    --green: #067a53; --yellow: #9a6700; --pink: #c2364e; --blue: #1e5fc2;
-    --glow: #dde6f5; --btn-cal-text: #ffffff; --geo-text: #ffffff;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-    background: var(--bg);
-    background-image: radial-gradient(ellipse 70% 40% at 50% -5%, var(--glow) 0%, transparent 60%);
-    color: var(--text); min-height: 100vh; padding: 24px 16px 60px;
-    transition: background-color .25s, color .25s;
-  }
-  .theme-toggle {
-    position: fixed; top: 14px; right: 14px; z-index: 10;
-    width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line);
-    background: var(--card); color: var(--text); font-size: 1.15rem; cursor: pointer;
-    box-shadow: 0 2px 10px rgba(0,0,0,.15);
-  }
-  .wrap { max-width: 640px; margin: 0 auto; }
-  header { text-align: center; margin-bottom: 22px; }
-  h1 { font-size: 1.6rem; }
-  header p { color: var(--muted); font-size: .9rem; margin-top: 6px; }
-
-  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
-  label { display: block; font-size: .82rem; color: var(--muted); margin: 10px 0 4px; }
-  select, input[type=search] {
-    width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
-    background: var(--card2); color: var(--text); font-size: 1rem; font-family: inherit;
-  }
-  .stops { max-height: 300px; overflow-y: auto; margin-top: 10px; }
-  .stop-item {
-    padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: .92rem;
-    display: flex; justify-content: space-between; gap: 8px; align-items: baseline;
-  }
-  button.stop-item { width: 100%; border: 0; background: transparent; color: var(--text); text-align: left; font-family: inherit; }
-  :focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
-  button, select { min-height: 44px; }
-  @media (max-width: 480px) { h1 { font-size: 1.3rem; padding: 0 30px; } .wtable { grid-template-columns: 66px repeat(7, 1fr); gap: 2px; } }
-  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
-  .stop-item:hover { background: var(--card2); }
-  .stop-item.sel { background: rgba(90,216,166,.12); outline: 1px solid var(--green); }
-  .stop-item .t { color: var(--yellow); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .stop-item .v { color: var(--muted); font-size: .8rem; }
-
-  .result { background: linear-gradient(135deg, var(--card), var(--card2)); border: 1px solid var(--line); border-radius: 18px; padding: 22px 18px; text-align: center; }
-  .result .sname { font-size: 1.15rem; font-weight: 700; }
-  .result .route { color: var(--muted); font-size: .82rem; margin-top: 2px; }
-  .next-label { margin-top: 14px; color: var(--green); font-size: .85rem; letter-spacing: 2px; }
-  .big { font-size: 2rem; font-weight: 800; color: var(--yellow); margin: 6px 0; font-variant-numeric: tabular-nums; }
-  .sub { color: var(--muted); font-size: .88rem; }
-  .wtable {
-    display: grid; grid-template-columns: 76px repeat(7, 1fr); gap: 5px;
-    margin-top: 18px; max-width: 460px; margin-left: auto; margin-right: auto;
-  }
-  .wt-cell { padding: 9px 0; text-align: center; border-radius: 9px; font-size: .9rem; }
-  .wt-head { color: var(--muted); font-weight: 700; font-size: .82rem; padding-bottom: 2px; }
-  .wt-head.today { color: var(--green); }
-  .wt-head.today::after { content: ""; display: block; width: 16px; height: 3px; border-radius: 2px; background: var(--green); margin: 3px auto 0; }
-  .wt-label { text-align: left; color: var(--muted); font-size: .8rem; white-space: nowrap; padding-left: 2px; }
-  .wt-on { font-weight: 900; }
-  .wt-on.g { color: var(--yellow); background: rgba(255,190,80,.14); }
-  .wt-on.r { color: var(--blue); background: rgba(90,150,255,.13); }
-  .wt-on.f { color: var(--pink); background: rgba(255,110,140,.13); }
-  .wt-off { color: var(--line); }
-  .btns { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .btn {
-    border: none; border-radius: 999px; padding: 10px 20px; font-size: .92rem; font-weight: 700;
-    cursor: pointer; font-family: inherit;
-  }
-  .btn.cal { background: var(--green); color: var(--btn-cal-text); }
-  .share-site {
-    text-align: center; margin-top: 26px; padding: 16px; background: var(--card);
-    border: 1px solid var(--line); border-radius: 16px;
-  }
-  .share-site p { color: var(--muted); font-size: .85rem; margin-bottom: 12px; }
-  .share-row { display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; }
-  .sbtn {
-    width: 44px; height: 44px; border-radius: 50%; display: inline-flex;
-    align-items: center; justify-content: center; font-weight: 800; font-size: 1.05rem;
-    text-decoration: none; color: #fff; cursor: pointer; border: none; font-family: inherit;
-  }
-  .sbtn:active { transform: scale(.94); }
-  .sbtn.fb { background: #1877f2; }
-  .sbtn.th { background: #000; border: 1px solid #444; }
-  .sbtn.x { background: #000; border: 1px solid #444; font-size: .95rem; }
-  .sbtn.line { background: #06c755; font-size: .62rem; letter-spacing: .5px; }
-  .sbtn.gh {
-    width: auto; border-radius: 999px; padding: 0 18px; height: 44px; gap: 6px;
-    background: var(--card2); color: var(--text); border: 1px solid var(--line); font-size: .9rem;
-  }
-  .btn.map { background: var(--card2); color: var(--text); border: 1px solid var(--line); }
-  .btn:active { transform: scale(.97); }
-  .legend { margin-top: 10px; font-size: .75rem; color: var(--muted); }
-  .hint { text-align: center; color: var(--muted); font-size: .9rem; padding: 30px 0; }
-  .notice {
-    background: rgba(255,209,102,.1); border: 1px solid rgba(255,209,102,.35);
-    border-radius: 12px; padding: 10px 14px; font-size: .84rem; margin-bottom: 14px;
-    color: var(--yellow); text-align: center;
-  }
-  .notice a { color: var(--yellow); font-weight: 700; }
-  .btn.geo { background: var(--blue); color: var(--geo-text); width: 100%; margin-top: 10px; }
-  .btn.fav { background: var(--card2); color: var(--yellow); border: 1px solid var(--line); }
-  .fav-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 10px; cursor: pointer; font-size: .9rem; }
-  .fav-item:hover { background: var(--card2); }
-  .fav-item .x { color: var(--muted); padding: 0 6px; cursor: pointer; }
-  .dist { color: var(--blue); font-size: .78rem; white-space: nowrap; }
-  footer { text-align: center; margin-top: 32px; color: var(--muted); font-size: .76rem; line-height: 1.8; }
-  footer a { color: var(--blue); }
+:root { --bg:#f7f8f2; --card:#fff; --card2:#f1f4ec; --text:#233f35; --muted:#64746b; --line:#dfe6dc; --green:#276747; --yellow:#776020; --pink:#a34857; --blue:#356c76; --btn-cal-text:#fff; --geo-text:#fff; color-scheme:light; }
+:root[data-theme="dark"] { --bg:#15231d; --card:#1e3027; --card2:#293d32; --text:#edf2e9; --muted:#afc1b4; --line:#3e5144; --green:#a9d8a5; --yellow:#e7cc81; --pink:#eda6b3; --blue:#9ad1d9; --btn-cal-text:#183322; --geo-text:#183322; color-scheme:dark; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); color:var(--text); font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif; line-height:1.6; padding:0 28px 40px; }
+button,input,select { font:inherit; } button,a,select { -webkit-tap-highlight-color:transparent; } button { cursor:pointer; } button:disabled { cursor:wait; opacity:.55; } a { color:var(--green); } :focus-visible { outline:3px solid var(--blue); outline-offset:4px; }
+.wrap { max-width:1120px; margin:auto; }
+.topbar { display:flex; justify-content:space-between; align-items:center; padding:23px 0; border-bottom:1px solid var(--line); }
+.brand { display:flex; align-items:center; gap:10px; font-size:17px; font-weight:800; letter-spacing:.04em; }
+.brand-mark { display:grid; place-items:center; width:34px; height:34px; border-radius:11px; background:var(--green); color:var(--bg); font-size:23px; }
+.top-meta { font-size:12px; color:var(--muted); margin-left:auto; margin-right:18px; }
+.theme-toggle { width:40px; height:40px; border:1px solid var(--line); border-radius:50%; background:var(--card); color:var(--text); }
+header { display:flex; justify-content:space-between; align-items:center; padding:50px 0 36px; gap:30px; }
+.eyebrow { color:var(--green); font-size:12px; font-weight:700; letter-spacing:.15em; margin-bottom:12px; }
+h1 { font-size:clamp(30px,4vw,46px); line-height:1.3; letter-spacing:-.04em; font-weight:800; }
+header p { color:var(--muted); font-size:15px; margin-top:15px; }
+.hero-note { flex:0 0 250px; padding:23px; border:1px solid var(--line); border-radius:20px; transform:rotate(3deg); background:#e9eedc; color:#36513b; }
+.hero-note strong { display:block; font-size:27px; letter-spacing:2px; white-space:nowrap; margin:3px 0; }.hero-note span { font-size:12px; }
+.notice { display:flex; gap:10px; align-items:baseline; border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:13px 0; color:var(--muted); font-size:13px; margin-bottom:28px; }.notice b { color:var(--green); white-space:nowrap; }.notice a { white-space:nowrap; }
+.workspace { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; align-items:start; }
+.panel { background:var(--card); border:1px solid var(--line); border-radius:22px; padding:24px; margin-bottom:20px; }
+.section-heading { display:flex; align-items:center; gap:10px; font-size:19px; margin-bottom:17px; }.step { color:var(--green); background:var(--card2); font-size:11px; border-radius:7px; padding:5px 7px; letter-spacing:.06em; }
+label { display:block; font-size:12px; font-weight:700; color:var(--muted); margin:16px 0 7px; }
+select,input[type=search] { width:100%; border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:11px; padding:12px; min-height:47px; font-size:15px; }
+.filters { display:grid; grid-template-columns:1fr 1fr; gap:12px; }.filters label { margin-top:0; }
+.btn { min-height:44px; padding:11px 17px; border:1px solid transparent; border-radius:11px; font-size:13px; font-weight:700; background:var(--card2); color:var(--text); }
+.btn:hover { filter:brightness(.96); }.btn.geo { width:100%; margin-top:13px; background:var(--card2); color:var(--green); border:1px solid var(--line); }.btn.cal { background:var(--green); color:var(--btn-cal-text); }.btn.map,.btn.fav { border-color:var(--line); background:var(--card); }.btn.fav { color:var(--yellow); }
+#status { font-size:12px; border-bottom:1px solid var(--line); padding-bottom:10px; }
+.stops { max-height:340px; overflow:auto; margin-top:6px; padding:3px; scrollbar-width:thin; scrollbar-color:var(--line) transparent; }
+.stop-item { width:100%; display:flex; justify-content:space-between; align-items:center; gap:14px; padding:14px 10px; border:0; border-bottom:1px solid var(--line); background:transparent; color:var(--text); text-align:left; font-size:14px; border-radius:9px; }.stop-item:hover,.stop-item.sel { background:var(--card2); }.stop-item.sel { box-shadow:inset 3px 0 var(--green); }.stop-item .v { display:inline-block; color:var(--muted); font-size:11px; margin-top:5px; }.stop-item .t { color:var(--green); font-size:17px; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }.dist { display:block; font-size:11px; color:var(--muted); white-space:nowrap; }
+#detail { position:sticky; top:24px; }.empty-detail { min-height:460px; border:1px dashed var(--line); border-radius:22px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:35px; background:var(--card2); }.empty-icon { width:78px; height:78px; display:grid; place-items:center; border-radius:50%; border:1px solid var(--line); background:var(--card); color:var(--green); margin-bottom:24px; font-size:32px; }.empty-detail h2 { font-size:20px; margin-bottom:9px; }.empty-detail p { max-width:260px; color:var(--muted); font-size:13px; }
+.result { border:1px solid var(--line); border-radius:22px; background:var(--card); padding:28px; }.sname { font-size:20px; font-weight:800; line-height:1.5; }.route { color:var(--muted); font-size:12px; margin-top:7px; }.next-label { margin-top:26px; color:var(--green); font-size:12px; }.big { color:var(--green); font-size:clamp(28px,3.1vw,42px); font-weight:800; letter-spacing:-.04em; line-height:1.4; padding:9px 0; font-variant-numeric:tabular-nums; }.sub { font-size:12px; color:var(--muted); line-height:1.9; }
+.wtable { display:grid; grid-template-columns:65px repeat(7,minmax(0,1fr)); gap:4px; border-top:1px solid var(--line); padding-top:18px; margin-top:22px; }.wt-cell { text-align:center; font-size:13px; padding:7px 0; border-radius:7px; }.wt-head { color:var(--muted); font-size:11px; }.wt-head.today { color:var(--green); font-weight:800; text-decoration:underline; text-underline-offset:5px; }.wt-label { text-align:left; font-size:11px; color:var(--muted); white-space:nowrap; }.wt-on { background:var(--card2); color:var(--green); font-weight:800; }.wt-on.r { color:var(--blue); }.wt-on.f { color:var(--pink); }.wt-off { color:var(--muted); }.legend { color:var(--muted); font-size:11px; margin-top:15px; }.btns { display:flex; flex-wrap:wrap; gap:8px; margin-top:23px; }.btns .cal { width:100%; }
+.fav-item { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:13px; padding:8px; border-radius:9px; cursor:pointer; }.fav-item:hover { background:var(--card2); }.fav-item .x { background:transparent; color:var(--muted); border:0; min-width:44px; min-height:44px; }
+.geo-message { background:var(--card2); border:1px solid var(--line); padding:14px; border-radius:12px; margin-top:12px; font-size:13px; }.geo-message p { margin-bottom:8px; }.geo-message a { display:inline-block; margin-right:16px; font-weight:700; }.geo-message button { color:var(--green); border:0; background:transparent; min-height:40px; text-decoration:underline; }.geo-message[hidden] { display:none; }
+.hint { color:var(--muted); text-align:center; padding:30px 8px; font-size:13px; }
+.share-site { display:flex; justify-content:space-between; align-items:center; gap:20px; border-top:1px solid var(--line); margin-top:38px; padding:22px 0; }.share-site p { font-size:12px; color:var(--muted); }.share-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }.sbtn { display:inline-flex; justify-content:center; align-items:center; width:36px; height:36px; border:1px solid var(--line); border-radius:50%; background:transparent; color:var(--muted); text-decoration:none; font-size:13px; font-weight:700; }.sbtn.line { font-size:9px; }.sbtn.gh { width:auto; padding:0 12px; border-radius:20px; font-size:11px; }
+footer { border-top:1px solid var(--line); padding-top:22px; color:var(--muted); font-size:11px; line-height:1.9; }footer p { display:none; }
+@media(max-width:760px) { body { padding:0 18px 28px; }.topbar { padding:17px 0; }.top-meta { display:none; }header { padding:32px 0 26px; }.hero-note { display:none; }header p { font-size:13px; }.workspace { grid-template-columns:1fr; gap:0; }#detail { position:static; }.empty-detail { min-height:220px; }.empty-icon { width:52px; height:52px; margin-bottom:15px; font-size:24px; }.panel,.result { padding:20px; border-radius:18px; }.notice { font-size:12px; }.share-site { flex-direction:column; align-items:flex-start; }.big { font-size:34px; }.brand { font-size:15px; } }
+@media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
 </style>
 </head>
 <body>
-<button class="theme-toggle" id="themeBtn" title="切換深淺色">🌙</button>
 <main class="wrap">
-  <header>
-    <h1>🚛 台北市垃圾車時間查詢</h1>
-    <p>垃圾車幾點到？選你家附近的清運點，即時倒數下一班，一鍵加進手機日曆提醒。</p>
-  </header>
-
-  <div class="notice">⚠️ 週三、週日停收。颱風或天災可能停收，出門前先看 <a href="https://www.dep.gov.taipei/" target="_blank" rel="noopener">環保局公告</a></div>
-
+  <nav class="topbar" aria-label="網站導覽"><div class="brand"><span class="brand-mark" aria-hidden="true">↗</span> 台北倒垃圾</div><span class="top-meta">TAIPEI · 日常生活小幫手</span><button class="theme-toggle" id="themeBtn" title="切換深淺色" aria-label="切換深淺色">☀️</button></nav>
+  <header><div><div class="eyebrow">把時間留給生活</div><h1>倒垃圾，不必再追車。</h1><p>找到附近的清運點，掌握下一班時間。<br>收藏常用地點，讓每一天從容一點。</p></div><aside class="hero-note" aria-label="固定停收日"><span>這兩天，垃圾車休息</span><strong>週三・週日</strong><span>出門前，記得確認收運時間。</span></aside></header>
+  <div class="notice"><b>收運提醒</b><span>週三、週日停收；特殊天候與節慶安排，請查看 <a href="https://www.dep.gov.taipei/" target="_blank" rel="noopener">環保局公告 ↗</a></span></div>
+  <div class="workspace"><div>
   <div class="panel" id="favPanel" style="display:none">
     <label>⭐ 我的常用清運點</label>
     <div id="favList"></div>
   </div>
 
-  <div class="panel">
-    <label for="city">行政區</label>
-    <select id="city"><option>載入中⋯</option></select>
-    <button class="btn geo" id="geoBtn">📍 找我附近的清運點</button>
-    <label for="village">里別</label>
-    <select id="village" disabled><option>先選行政區</option></select>
+  <section class="panel" aria-labelledby="searchTitle">
+    <h2 class="section-heading" id="searchTitle"><span class="step">01</span> 找一個清運點</h2>
+    <div class="filters"><div><label for="city">行政區</label><select id="city"><option>載入中⋯</option></select></div><div><label for="village">里別</label><select id="village" disabled><option>先選行政區</option></select></div></div>
+    <button class="btn geo" id="geoBtn">◎ 定位尋找附近清運點</button>
+    <div id="geoMessage" class="geo-message" role="status" hidden></div>
     <label for="q">搜尋清運點（路名、地標）</label>
     <input type="search" id="q" placeholder="例如：中山北路、公園、市場⋯" disabled>
     <p id="status" role="status" style="margin-top:12px;color:var(--muted)">請選行政區，開始查詢。</p>
     <div class="stops" id="stops"></div>
+  </section>
   </div>
 
   <noscript><p class="notice">此查詢需要 JavaScript，請啟用後重新整理。</p></noscript>
-  <div id="detail"></div>
+  <div id="detail"><div class="empty-detail"><span class="empty-icon" aria-hidden="true">◷</span><h2>下一班，幾點到？</h2><p>先選擇行政區，再點選清運點。<br>這裡會顯示倒數與每週收運時間。</p></div></div>
+  </div>
 
   <div class="share-site">
     <p>覺得好用？分享給朋友，或到 GitHub 給顆星 ⭐</p>
@@ -222,10 +142,11 @@ const ICS_DAY = ["SU","MO","TU","WE","TH","FR","SA"];
 let cityData = null, selStop = null, timer = null;
 
 const $ = id => document.getElementById(id);
+const emptyDetail = $("detail").innerHTML;
 const tpeNow = () => new Date(Date.now() + 8 * 3600000);
 
 // ===== 深淺色模式：跟隨系統，可手動切換 =====
-const sysTheme = () => matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+const sysTheme = () => "light";
 function applyTheme(t) {
   document.documentElement.dataset.theme = t;
   $("themeBtn").textContent = t === "dark" ? "🌙" : "☀️";
@@ -236,10 +157,6 @@ $("themeBtn").onclick = () => {
   storage.setItem("theme", next);
   applyTheme(next);
 };
-matchMedia("(prefers-color-scheme: light)").addEventListener("change", e => {
-  if (!storage.getItem("theme")) applyTheme(e.matches ? "light" : "dark");
-});
-
 // ===== 分享網站 =====
 function shareSite(to) {
   const url = encodeURIComponent(location.href.split("#")[0]);
@@ -280,14 +197,48 @@ async function init() {
 }
 
 // ===== 定位找最近清運點 =====
+function showGeoMessage(message, openSite = false) {
+  const box = $("geoMessage");
+  box.replaceChildren(); box.hidden = false;
+  const text = document.createElement("p"); text.textContent = message; box.append(text);
+  if (openSite) {
+    const link = document.createElement("a");
+    link.href = "https://tpe-trash-countdown.sectools.tw/" + location.hash;
+    link.target = "_blank"; link.rel = "noopener"; link.textContent = "獨立開啟網站 ↗";
+    box.append(link);
+  }
+  const manual = document.createElement("button");
+  manual.type = "button"; manual.textContent = "改用手動查詢";
+  manual.onclick = () => { ($( "q").disabled ? $("city") : $("q")).focus(); };
+  box.append(manual);
+}
+function showPolicyMessage() {
+  const embedded = window.self !== window.top;
+  showGeoMessage(embedded
+    ? "目前的開啟環境禁止使用定位。可嘗試獨立開啟網站；若仍無法定位，請改用手動查詢。"
+    : "本站目前的安全設定暫未開放定位。請先選擇行政區，再輸入路名查詢清運點。這不是你的裝置設定問題。", embedded);
+}
+function geoPolicyBlocked() {
+  const policy = document.permissionsPolicy || document.featurePolicy;
+  return policy?.allowsFeature ? !policy.allowsFeature("geolocation") : false;
+}
 function geoLocate() {
-  if (!cityData || !$("city").value) { alert("請先選行政區，再用定位找該區最近的清運點"); return; }
-  if (!navigator.geolocation) { alert("你的瀏覽器不支援定位"); return; }
-  $("geoBtn").textContent = "📍 定位中⋯";
+  if (geoPolicyBlocked()) {
+    showPolicyMessage(); return;
+  }
+  if (!window.isSecureContext) {
+    showGeoMessage("定位需要安全連線，請開啟正式網站後再試。", true); return;
+  }
+  if (!navigator.geolocation) { showGeoMessage("此瀏覽器不支援定位，請改用行政區與路名查詢。"); return; }
+  if (!cityData || !$("city").value) { showGeoMessage("請先選擇行政區，再尋找該區附近的清運點。"); return; }
+  $("geoMessage").hidden = true;
+  $("geoBtn").textContent = "正在取得位置…";
+  $("geoBtn").disabled = true;
   const version = loadVersion;
   navigator.geolocation.getCurrentPosition(pos => {
-    $("geoBtn").textContent = "📍 找我附近的清運點";
     if (version !== loadVersion || !cityData) return;
+    $("geoBtn").textContent = "◎ 定位尋找附近清運點";
+    $("geoBtn").disabled = false;
     const { latitude: la, longitude: lo } = pos.coords;
     const dist = s => {
       const dx = (s[3] - lo) * 111320 * Math.cos(la * Math.PI / 180);
@@ -308,8 +259,19 @@ function geoLocate() {
       if (el.dataset.i !== undefined) el.onclick = () => selectStop(shown[+el.dataset.i], el);
     });
   }, err => {
-    $("geoBtn").textContent = "📍 找我附近的清運點";
-    alert("定位失敗：" + err.message);
+    if (version !== loadVersion) return;
+    $("geoBtn").textContent = "◎ 定位尋找附近清運點";
+    $("geoBtn").disabled = false;
+    if (geoPolicyBlocked()) {
+      showPolicyMessage();
+    } else {
+      const messages = {
+        1: "尚未取得定位權限。請在瀏覽器的網站設定中允許位置存取；若在 App 內開啟，也可改用外部瀏覽器。",
+        2: "目前無法取得位置。請確認裝置已開啟定位服務，或改用路名搜尋。",
+        3: "取得位置逾時。請確認定位服務與網路連線後再試，或改用手動查詢。"
+      };
+      showGeoMessage(messages[err.code] || "暫時無法定位，請稍後再試，或改用行政區與路名查詢。", err.code === 1);
+    }
   }, { enableHighAccuracy: true, timeout: 10000 });
 }
 
@@ -358,7 +320,9 @@ async function loadCity(city, saved) {
   const version = ++loadVersion;
   cityData = null; selStop = null;
   clearInterval(timer);
-  $("detail").replaceChildren(); $("stops").replaceChildren();
+  $("detail").innerHTML = emptyDetail; $("stops").replaceChildren();
+  $("geoMessage").hidden = true;
+  $("geoBtn").textContent = "◎ 定位尋找附近清運點";
   $("village").disabled = true; $("q").disabled = true; $("q").value = "";
   $("geoBtn").disabled = true;
   $("village").innerHTML = '<option value="">先選行政區</option>';
@@ -480,7 +444,7 @@ function selectStop(s, el) {
   };
   render();
   timer = setInterval(render, 1000);
-  $("detail").scrollIntoView({ behavior: "smooth", block: "start" });
+  if (matchMedia("(max-width: 760px)").matches) $("detail").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function openMap() {
