@@ -4,7 +4,7 @@ body{background:var(--bg);color:var(--text);font-family:"PingFang TC","Noto Sans
 a{color:var(--green)}:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
 .wrap{max-width:900px;margin:auto}
 .top{display:flex;align-items:center;gap:10px;padding:18px 0;border-bottom:1px solid var(--line);font-weight:800}
-.top a{text-decoration:none;color:var(--text)}.mark{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:10px;background:var(--green);color:var(--bg)}
+.top a{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}.mark{display:block;width:30px;height:30px;border-radius:8px}
 .crumb{font-size:12px;color:var(--muted);margin:18px 0 8px}.crumb a{color:var(--muted)}
 h1{font-size:clamp(26px,4vw,38px);line-height:1.35;letter-spacing:-.03em}
 h2{font-size:19px;margin:30px 0 12px}

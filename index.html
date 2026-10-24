@@ -45,17 +45,15 @@
 }
 </script>
 <style>
-:root { --bg:#f7f8f2; --card:#fff; --card2:#f1f4ec; --text:#233f35; --muted:#64746b; --line:#dfe6dc; --green:#276747; --yellow:#776020; --pink:#a34857; --blue:#356c76; --btn-cal-text:#fff; --geo-text:#fff; color-scheme:light; }
-:root[data-theme="dark"] { --bg:#15231d; --card:#1e3027; --card2:#293d32; --text:#edf2e9; --muted:#afc1b4; --line:#3e5144; --green:#a9d8a5; --yellow:#e7cc81; --pink:#eda6b3; --blue:#9ad1d9; --btn-cal-text:#183322; --geo-text:#183322; color-scheme:dark; }
+:root { --bg:#f7f8f2; --card:#fff; --card2:#f1f4ec; --text:#233f35; --muted:#64746b; --line:#dfe6dc; --green:#276747; --yellow:#776020; --pink:#a34857; --blue:#356c76; --btn-cal-text:#fff; --geo-text:#fff; color-scheme:light only; }
 * { box-sizing:border-box; margin:0; padding:0; }
 body { background:var(--bg); color:var(--text); font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif; line-height:1.6; padding:0 28px 40px; }
 button,input,select { font:inherit; } button,a,select { -webkit-tap-highlight-color:transparent; } button { cursor:pointer; } button:disabled { cursor:wait; opacity:.55; } a { color:var(--green); } :focus-visible { outline:3px solid var(--blue); outline-offset:4px; }
 .wrap { max-width:1120px; margin:auto; }
 .topbar { display:flex; justify-content:space-between; align-items:center; padding:23px 0; border-bottom:1px solid var(--line); }
 .brand { display:flex; align-items:center; gap:10px; font-size:17px; font-weight:800; letter-spacing:.04em; }
-.brand-mark { display:grid; place-items:center; width:34px; height:34px; border-radius:11px; background:var(--green); color:var(--bg); font-size:23px; }
-.top-meta { font-size:12px; color:var(--muted); margin-left:auto; margin-right:18px; text-decoration:none; }.top-meta:hover { color:var(--green); }
-.theme-toggle { width:40px; height:40px; border:1px solid var(--line); border-radius:50%; background:var(--card); color:var(--text); }
+.brand-mark { display:block; width:34px; height:34px; border-radius:9px; }
+.top-meta { font-size:12px; color:var(--muted); margin-left:auto; text-decoration:none; }.top-meta:hover { color:var(--green); }
 header { display:flex; justify-content:space-between; align-items:center; padding:50px 0 36px; gap:30px; }
 .eyebrow { color:var(--green); font-size:12px; font-weight:700; letter-spacing:.15em; margin-bottom:12px; }
 h1 { font-size:clamp(30px,4vw,46px); line-height:1.3; letter-spacing:-.04em; font-weight:800; }
@@ -90,7 +88,7 @@ footer { border-top:1px solid var(--line); padding-top:22px; color:var(--muted);
 </head>
 <body>
 <main class="wrap">
-  <nav class="topbar" aria-label="網站導覽"><div class="brand"><span class="brand-mark" aria-hidden="true">↗</span> 台北倒垃圾</div><a class="top-meta" href="https://sectools.tw/" target="_blank" rel="noopener">sectools.tw 生活小工具 ↗</a><button class="theme-toggle" id="themeBtn" title="切換深淺色" aria-label="切換深淺色">☀️</button></nav>
+  <nav class="topbar" aria-label="網站導覽"><div class="brand"><img class="brand-mark" src="assets/icon.svg" alt="" width="34" height="34"> 台北倒垃圾</div><a class="top-meta" href="https://sectools.tw/" target="_blank" rel="noopener">sectools.tw 生活小工具</a></nav>
   <header><div><div class="eyebrow">把時間留給生活</div><h1>倒垃圾，不必再追車。</h1><p>找到附近的清運點，掌握下一班時間。<br>收藏常用地點，讓每一天從容一點。</p></div><aside class="hero-note" aria-label="固定停收日"><span>這兩天，垃圾車休息</span><strong>週三・週日</strong><span>出門前，記得確認收運時間。</span></aside></header>
   <div class="notice"><b>收運提醒</b><span>週三、週日停收；特殊天候與節慶安排，請查看 <a href="https://www.dep.gov.taipei/" target="_blank" rel="noopener">環保局公告 ↗</a></span></div>
   <div class="workspace"><div>
@@ -169,18 +167,6 @@ const $ = id => document.getElementById(id);
 const emptyDetail = $("detail").innerHTML;
 const tpeNow = () => new Date(Date.now() + 8 * 3600000);
 
-// ===== 深淺色模式：跟隨系統，可手動切換 =====
-const sysTheme = () => "light";
-function applyTheme(t) {
-  document.documentElement.dataset.theme = t;
-  $("themeBtn").textContent = t === "dark" ? "🌙" : "☀️";
-}
-applyTheme(storage.getItem("theme") || sysTheme());
-$("themeBtn").onclick = () => {
-  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-  storage.setItem("theme", next);
-  applyTheme(next);
-};
 // ===== 分享網站 =====
 function shareSite(to) {
   const url = encodeURIComponent(location.href.split("#")[0]);
