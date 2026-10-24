@@ -53,7 +53,7 @@ def page(title, description, canonical, depth, body, ld):
 </head>
 <body>
 <main class="wrap">
-<nav class="top" aria-label="網站導覽"><a href="{up}"><span class="mark" aria-hidden="true">↗</span> 台北倒垃圾</a><a class="by" href="https://sectools.tw/">sectools.tw 出品</a></nav>
+<nav class="top" aria-label="網站導覽"><a href="{up}"><span class="mark" aria-hidden="true">↗</span> 台北倒垃圾</a></nav>
 {body}
 <footer>資料來源：<a href="https://data.taipei/dataset/detail?id=6bb3304b-4f46-4bb0-8cd1-60c66dcd1cae" rel="noopener">臺北市資料大平臺「臺北市垃圾車點位路線資訊」</a>，每月自動更新。表定時間僅供參考，實際以現場為準；颱風、節慶停收請看<a href="https://www.dep.gov.taipei/" rel="noopener">環保局公告</a>。<br>由 <a href="https://sectools.tw/">sectools.tw</a> 製作的生活小工具・姊妹站：<a href="https://ntpc-trash-countdown.sectools.tw/">新北市垃圾車時間查詢</a></footer>
 </main>
