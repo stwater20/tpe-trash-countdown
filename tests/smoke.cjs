@@ -2,12 +2,12 @@ const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 (async () => {
   const browser = await chromium.launch({headless:true, ...(process.env.CHROME_PATH ? {executablePath:process.env.CHROME_PATH} : {})});
-  const page = await browser.newPage({viewport:{width:390,height:844}, timezoneId:'America/Los_Angeles'});
+  const page = await browser.newPage({serviceWorkers:'block', viewport:{width:390,height:844}, timezoneId:'America/Los_Angeles'});
   const errors=[]; page.on('pageerror', e=>errors.push(e.message));
   await page.addInitScript(()=>localStorage.setItem('tpe-trash-favs','broken json'));
   if (!process.env.TEST_URL) await page.route('http://localhost/**', async route => {
     const pathname = decodeURIComponent(new URL(route.request().url()).pathname);
-    const file = require('node:path').join(__dirname, '..', pathname === '/' ? 'index.html' : pathname);
+    const file = require('node:path').join(__dirname, '..', pathname.endsWith('/') ? pathname + 'index.html' : pathname);
     await route.fulfill({path:file});
   });
   await page.goto(process.env.TEST_URL || 'http://localhost/');
@@ -70,5 +70,15 @@ const assert = require('node:assert/strict');
   await page.locator('button.stop-item').first().click();
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   await page.screenshot({path:'/tmp/trash-desktop.png',fullPage:true});
-  await browser.close(); console.log('PASS: mobile layout, selection, storage recovery, favorites, stable focus, calendar, empty district, retry and search');
+  // Static district/village pages deep-link into the app with a selected stop.
+  await page.goto('http://localhost/' + encodeURIComponent('大安區') + '/');
+  assert.match(await page.locator('h1').innerText(), /大安區垃圾車時間/);
+  await page.locator('.links a').first().click();
+  assert.match(await page.locator('h1').innerText(), /大安區.+里垃圾車時間/);
+  const stopName = await page.locator('tbody tr td').nth(1).innerText();
+  await page.locator('tbody a').first().click();
+  await page.locator('.result').waitFor();
+  assert((await page.locator('.sname').innerText()).includes(stopName));
+  assert.deepEqual(errors,[]);
+  await browser.close(); console.log('PASS: mobile layout, static district pages, selection, storage recovery, favorites, stable focus, calendar, empty district, retry and search');
 })().catch(e=>{console.error(e);process.exit(1)});

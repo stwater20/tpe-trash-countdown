@@ -13,4 +13,5 @@ jobs:
       - run: npm install --no-save playwright@1.58.2
       - run: npx playwright install --with-deps chromium
       - run: node --check scripts/fetch-data.mjs
+      - run: python3 scripts/build-pages.py && test -z "$(git status --porcelain)"
       - run: node tests/smoke.cjs

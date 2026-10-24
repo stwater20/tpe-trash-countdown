@@ -13,6 +13,8 @@
 - **⭐ 常用清運點**：收藏多個清運點（例如家裡＋公司），一鍵切換
 - **🔗 可分享網址**：選好的清運點會寫進網址 hash，貼給家人直接開
 - **記住上次選擇**：下次打開直接顯示你的清運點
+- **各區／各里時間表頁**：12 區、450+ 里各有一頁靜態清運時間表（如 `/大安區/民輝里/`），搜尋「XX里垃圾車時間」可直接找到，點清運點即開啟倒數與日曆
+- **📲 加到主畫面**：PWA，可安裝成 App、離線也能看上次載入的資料
 
 ## 🏗️ 架構
 
@@ -21,10 +23,15 @@ index.html              ← 網站本體（無外部套件、單檔）
 data/index.json         ← 行政區索引（Actions 產生）
 data/<行政區>.json       ← 各區清運點資料（Actions 產生）
 scripts/fetch-data.mjs  ← 抓資料腳本（Node 20+，無外部套件）
+scripts/build-pages.py  ← 產生 <區>/<里>/index.html 與 sitemap.xml（Python 3 標準函式庫）
+<行政區>/…/index.html    ← 產生的靜態時間表頁（勿手改）
+manifest.webmanifest, sw.js, assets/ ← PWA、圖示、社群分享預覽圖
 .github/workflows/update-data.yml ← 每月 1 號自動抓最新資料
 ```
 
 前端不直接呼叫 data.taipei API，改由 GitHub Actions 在伺服器端抓資料、切成每區 JSON commit 進 repo，網站讀同源檔案：快、穩、離線可快取，也不怕 API 掛掉。
+
+資料更新後執行 `python3 scripts/build-pages.py` 重建頁面；每月的 Actions 會自動執行，CI 也會檢查產生頁是否與資料同步。
 
 ## 🚀 部署
 
@@ -38,6 +45,8 @@ scripts/fetch-data.mjs  ← 抓資料腳本（Node 20+，無外部套件）
 - 資料：[臺北市資料大平臺「臺北市垃圾車點位路線資訊」](https://data.taipei/dataset/detail?id=6bb3304b-4f46-4bb0-8cd1-60c66dcd1cae)（臺北市政府環境保護局，公開授權）
 - 共 4,000+ 個清運點、12 個行政區，含表定抵達時間與路線車次
 - ⚠️ 表定時間僅供參考，實際以現場為準；颱風等天災停收請看環保局公告
+
+由 [sectools.tw](https://sectools.tw/) 製作的生活小工具。
 
 ## License
 

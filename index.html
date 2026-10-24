@@ -13,7 +13,17 @@
 <meta property="og:description" content="查你家垃圾車幾點到：即時倒數、GPS 找最近清運點、每週時刻表一鍵加入手機日曆。台北市 12 區、4 千個清運點，每月自動更新。">
 <meta property="og:locale" content="zh_TW">
 <meta property="og:site_name" content="台北市垃圾車時間查詢">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://tpe-trash-countdown.sectools.tw/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="台北市垃圾車時間查詢：垃圾車幾點到？倒數＋日曆提醒">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tpe-trash-countdown.sectools.tw/assets/og.png">
+<meta name="theme-color" content="#276747">
+<meta name="apple-mobile-web-app-title" content="台北倒垃圾">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="twitter:title" content="台北市垃圾車時間查詢｜即時倒數＋日曆提醒 🚛">
 <meta name="twitter:description" content="查你家垃圾車幾點到，一鍵加入手機日曆提醒。">
 <script type="application/ld+json">
@@ -28,7 +38,10 @@
   "operatingSystem": "Any",
   "inLanguage": "zh-Hant-TW",
   "isAccessibleForFree": true,
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TWD" }
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TWD" },
+  "image": "https://tpe-trash-countdown.sectools.tw/assets/og.png",
+  "publisher": { "@type": "Organization", "name": "sectools.tw", "url": "https://sectools.tw/" },
+  "sameAs": ["https://github.com/stwater20/tpe-trash-countdown"]
 }
 </script>
 <style>
@@ -41,7 +54,7 @@ button,input,select { font:inherit; } button,a,select { -webkit-tap-highlight-co
 .topbar { display:flex; justify-content:space-between; align-items:center; padding:23px 0; border-bottom:1px solid var(--line); }
 .brand { display:flex; align-items:center; gap:10px; font-size:17px; font-weight:800; letter-spacing:.04em; }
 .brand-mark { display:grid; place-items:center; width:34px; height:34px; border-radius:11px; background:var(--green); color:var(--bg); font-size:23px; }
-.top-meta { font-size:12px; color:var(--muted); margin-left:auto; margin-right:18px; }
+.top-meta { font-size:12px; color:var(--muted); margin-left:auto; margin-right:18px; text-decoration:none; }.top-meta:hover { color:var(--green); }
 .theme-toggle { width:40px; height:40px; border:1px solid var(--line); border-radius:50%; background:var(--card); color:var(--text); }
 header { display:flex; justify-content:space-between; align-items:center; padding:50px 0 36px; gap:30px; }
 .eyebrow { color:var(--green); font-size:12px; font-weight:700; letter-spacing:.15em; margin-bottom:12px; }
@@ -68,6 +81,8 @@ select,input[type=search] { width:100%; border:1px solid var(--line); background
 .geo-message { background:var(--card2); border:1px solid var(--line); padding:14px; border-radius:12px; margin-top:12px; font-size:13px; }.geo-message p { margin-bottom:8px; }.geo-message a { display:inline-block; margin-right:16px; font-weight:700; }.geo-message button { color:var(--green); border:0; background:transparent; min-height:40px; text-decoration:underline; }.geo-message[hidden] { display:none; }
 .hint { color:var(--muted); text-align:center; padding:30px 8px; font-size:13px; }
 .share-site { display:flex; justify-content:space-between; align-items:center; gap:20px; border-top:1px solid var(--line); margin-top:38px; padding:22px 0; }.share-site p { font-size:12px; color:var(--muted); }.share-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }.sbtn { display:inline-flex; justify-content:center; align-items:center; width:36px; height:36px; border:1px solid var(--line); border-radius:50%; background:transparent; color:var(--muted); text-decoration:none; font-size:13px; font-weight:700; }.sbtn.line { font-size:9px; }.sbtn.gh { width:auto; padding:0 12px; border-radius:20px; font-size:11px; }
+.districts { border-top:1px solid var(--line); margin-top:38px; padding-top:26px; }.districts h2 { font-size:19px; }.districts p { color:var(--muted); font-size:13px; margin:4px 0 14px; }.district-links { display:flex; flex-wrap:wrap; gap:8px; }.district-links a { padding:8px 14px; border:1px solid var(--line); border-radius:20px; background:var(--card); text-decoration:none; font-size:14px; }.district-links a:hover { background:var(--card2); }
+.share-site p a { white-space:nowrap; }
 footer { border-top:1px solid var(--line); padding-top:22px; color:var(--muted); font-size:11px; line-height:1.9; }footer p { display:none; }
 @media(max-width:760px) { body { padding:0 18px 28px; }.topbar { padding:17px 0; }.top-meta { display:none; }header { padding:32px 0 26px; }.hero-note { display:none; }header p { font-size:13px; }.workspace { grid-template-columns:1fr; gap:0; }#detail { position:static; }.empty-detail { min-height:220px; }.empty-icon { width:52px; height:52px; margin-bottom:15px; font-size:24px; }.panel,.result { padding:20px; border-radius:18px; }.notice { font-size:12px; }.share-site { flex-direction:column; align-items:flex-start; }.big { font-size:34px; }.brand { font-size:15px; } }
 @media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
@@ -75,7 +90,7 @@ footer { border-top:1px solid var(--line); padding-top:22px; color:var(--muted);
 </head>
 <body>
 <main class="wrap">
-  <nav class="topbar" aria-label="網站導覽"><div class="brand"><span class="brand-mark" aria-hidden="true">↗</span> 台北倒垃圾</div><span class="top-meta">TAIPEI · 日常生活小幫手</span><button class="theme-toggle" id="themeBtn" title="切換深淺色" aria-label="切換深淺色">☀️</button></nav>
+  <nav class="topbar" aria-label="網站導覽"><div class="brand"><span class="brand-mark" aria-hidden="true">↗</span> 台北倒垃圾</div><a class="top-meta" href="https://sectools.tw/" target="_blank" rel="noopener">sectools.tw 生活小工具 ↗</a><button class="theme-toggle" id="themeBtn" title="切換深淺色" aria-label="切換深淺色">☀️</button></nav>
   <header><div><div class="eyebrow">把時間留給生活</div><h1>倒垃圾，不必再追車。</h1><p>找到附近的清運點，掌握下一班時間。<br>收藏常用地點，讓每一天從容一點。</p></div><aside class="hero-note" aria-label="固定停收日"><span>這兩天，垃圾車休息</span><strong>週三・週日</strong><span>出門前，記得確認收運時間。</span></aside></header>
   <div class="notice"><b>收運提醒</b><span>週三、週日停收；特殊天候與節慶安排，請查看 <a href="https://www.dep.gov.taipei/" target="_blank" rel="noopener">環保局公告 ↗</a></span></div>
   <div class="workspace"><div>
@@ -100,14 +115,23 @@ footer { border-top:1px solid var(--line); padding-top:22px; color:var(--muted);
   <div id="detail"><div class="empty-detail"><span class="empty-icon" aria-hidden="true">◷</span><h2>下一班，幾點到？</h2><p>先選擇行政區，再點選清運點。<br>這裡會顯示倒數與每週收運時間。</p></div></div>
   </div>
 
+  <section class="districts" aria-labelledby="districtTitle">
+    <h2 id="districtTitle">各區垃圾車時間表</h2>
+    <p>不想操作？直接看你家那一區、那一里的完整清運時間。</p>
+    <div class="district-links">
+      <a href="士林區/">士林區</a><a href="大同區/">大同區</a><a href="大安區/">大安區</a><a href="中山區/">中山區</a><a href="中正區/">中正區</a><a href="內湖區/">內湖區</a><a href="文山區/">文山區</a><a href="北投區/">北投區</a><a href="松山區/">松山區</a><a href="信義區/">信義區</a><a href="南港區/">南港區</a><a href="萬華區/">萬華區</a>
+    </div>
+  </section>
+
   <div class="share-site">
-    <p>覺得好用？分享給朋友，或到 GitHub 給顆星 ⭐</p>
+    <p>覺得好用？分享給鄰居和家人，或到 GitHub 給顆星 ⭐<br>更多實用小工具：<a href="https://sectools.tw/" target="_blank" rel="noopener">sectools.tw</a>・姊妹站 <a href="https://ntpc-trash-countdown.sectools.tw/" target="_blank" rel="noopener">新北市垃圾車時間查詢</a></p>
     <div class="share-row">
       <button class="sbtn fb" title="分享到 Facebook" onclick="shareSite('fb')">f</button>
       <button class="sbtn line" title="分享到 LINE" onclick="shareSite('line')">LINE</button>
       <button class="sbtn th" title="分享到 Threads" onclick="shareSite('threads')">@</button>
       <button class="sbtn x" title="分享到 X" onclick="shareSite('x')">𝕏</button>
       <a class="sbtn gh" href="https://github.com/stwater20/tpe-trash-countdown" target="_blank" rel="noopener">⭐ Star on GitHub</a>
+      <button class="sbtn gh" id="installBtn" hidden>📲 加到主畫面</button>
     </div>
   </div>
 
@@ -118,7 +142,7 @@ footer { border-top:1px solid var(--line); padding-top:22px; color:var(--muted);
       台北市每週三、週日停收；資源回收週一、五收平面類，週二、四、六收立體類。
     </p>
     資料來源：<a href="https://data.taipei/dataset/detail?id=6bb3304b-4f46-4bb0-8cd1-60c66dcd1cae" target="_blank" rel="noopener">臺北市資料大平臺「臺北市垃圾車點位路線資訊」</a>（每月自動更新）<br>
-    <span id="updated"></span>表定時間僅供參考，實際以現場為準。節慶與特殊停收安排請以環保局公告為準。定位僅用於本機計算距離；收藏儲存在此瀏覽器。
+    由 <a href="https://sectools.tw/" target="_blank" rel="noopener">sectools.tw</a> 製作・<span id="updated"></span>表定時間僅供參考，實際以現場為準。節慶與特殊停收安排請以環保局公告為準。定位僅用於本機計算距離；收藏儲存在此瀏覽器。
   </footer>
 </main>
 
@@ -160,7 +184,7 @@ $("themeBtn").onclick = () => {
 // ===== 分享網站 =====
 function shareSite(to) {
   const url = encodeURIComponent(location.href.split("#")[0]);
-  const text = encodeURIComponent("🚛 台北市垃圾車倒數：查你家垃圾車幾點到，還能加進手機日曆提醒！");
+  const text = encodeURIComponent("🚛 台北市垃圾車倒數：查你家垃圾車幾點到，還能加進手機日曆提醒！（sectools.tw 生活小工具）");
   const links = {
     fb: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
     line: `https://social-plugins.line.me/lineit/share?url=${url}&text=${text}`,
@@ -169,6 +193,20 @@ function shareSite(to) {
   };
   window.open(links[to], "_blank", "width=600,height=550");
 }
+
+// ===== 安裝成 App（PWA）＋離線快取 =====
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+let installEvent = null;
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvent = e; $("installBtn").hidden = false; });
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) && !matchMedia("(display-mode: standalone)").matches && !navigator.standalone;
+if (isIOS) $("installBtn").hidden = false;
+$("installBtn").onclick = async () => {
+  if (installEvent) { installEvent.prompt(); await installEvent.userChoice.catch(() => {}); installEvent = null; $("installBtn").hidden = true; }
+  else alert("iPhone／iPad：點 Safari 下方的「分享」按鈕 ⬆️，再選「加入主畫面」，就能像 App 一樣一鍵打開。");
+};
+addEventListener("appinstalled", () => { $("installBtn").hidden = true; });
 
 function parseHash() {
   try {
@@ -193,6 +231,10 @@ async function init() {
     await loadCity(saved.city, saved);
   }
   citySel.onchange = () => loadCity(citySel.value, {});
+  addEventListener("hashchange", () => {
+    const h = parseHash();
+    if (h && [...citySel.options].some(o => o.value === h.city)) { citySel.value = h.city; loadCity(h.city, h); }
+  });
   $("geoBtn").onclick = geoLocate;
 }
 
@@ -453,8 +495,8 @@ function openMap() {
 
 async function shareLink() {
   const url = location.href;
-  const text = `🚛 ${selStop[0]} 的垃圾車時間表`;
-  if (navigator.share) { try { await navigator.share({ title: text, url }); } catch {} }
+  const text = `🚛 ${selStop[0]} 的垃圾車時間表（台北市垃圾車倒數・sectools.tw）`;
+  if (navigator.share) { try { await navigator.share({ title: text, text, url }); } catch {} }
   else { try { await navigator.clipboard.writeText(url); alert("連結已複製！"); } catch { prompt("請複製以下連結", url); } }
 }
 
