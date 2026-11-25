@@ -48,7 +48,7 @@ const assert = require('node:assert/strict');
   assert.match(await page.locator('.today-box').innerText(), /可以丟/);
   await page.getByRole('button',{name:'⭐ 加入常用',exact:true}).click();
   assert.equal(await page.locator('.fav-item').count(),1);
-  assert.match(await page.locator('.fav-next').innerText(), /還有|天後|表定 .+ 已過/);
+  assert.match(await page.locator('.fav-next').innerText(), /還有|天後|已過/);
   page.once('dialog', d => d.accept('家'));
   await page.getByRole('button',{name:/重新命名/}).click();
   assert.match(await page.locator('.fav-name').innerText(), /家/);
